@@ -46,6 +46,7 @@ module Packwerk
       @new_entries[reference.constant.package.name] = package_violations
     end
 
+    sig { returns(T::Boolean) }
     def stale_violations?
       prepare_entries_for_dump
       deprecated_references.any? do |package, package_violations|
