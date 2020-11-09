@@ -68,6 +68,36 @@ module Packwerk
       refute success
     end
 
+    test "#execute_command with the subcommand detect-stale-violations returns status code 1 if stale violations" do
+      stale_violations_message = "There were stale violations produced, please run packwerk update"
+      offense = stub
+      detect_stale_deprecated_references = stub
+      detect_stale_deprecated_references.stubs(:stale_violations?).returns(true)
+
+      file_processor = stub
+      file_processor
+        .stubs(:call)
+        .returns([offense])
+
+      run_context = stub
+      run_context.stubs(:file_processor).at_least_once.returns(file_processor)
+
+      string_io = StringIO.new
+
+      cli = ::Packwerk::Cli.new(out: string_io, run_context: run_context)
+
+      ::Packwerk::FilesForProcessing.stubs(fetch: ["path/of/exile.rb"])
+      ::Packwerk::RunContext.stubs(from_configuration: run_context)
+
+      no_stale_violations = cli.detect_stale_violations(
+        "path/of/exile.rb",
+        reference_lister: detect_stale_deprecated_references
+      )
+
+      assert_includes string_io.string, stale_violations_message
+      refute no_stale_violations
+    end
+
     test "#execute_command with the subcommand help lists all the valid subcommands" do
       @cli.execute_command(["help"])
 
