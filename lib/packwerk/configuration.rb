@@ -61,10 +61,12 @@ module Packwerk
       bundle_path_match = Bundler.bundle_path.join("**").to_s
 
       all_paths = all_paths.each_with_object([]) do |path_string, paths|
-        # ignore paths inside gems
         path = Pathname.new(path_string)
 
-        next unless path.exist?
+        # ignore paths outside of the Rails root
+        next unless path.exist? && path.realpath.fnmatch(Rails.root.join("**").to_s)
+
+        # ignore paths inside gems
         next if path.realpath.fnmatch(bundle_path_match)
 
         paths << path.relative_path_from(Rails.root).to_s
